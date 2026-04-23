@@ -16,6 +16,7 @@ export class AuthService {
         private users: UsersService,
         private crypto: CryptoService,
         private tokens: TokenService,
+        private prisma: PrismaService,
     ) {}
 
     async login(dto: LoginRequestDto): Promise<LoginResponseDto> {
@@ -34,6 +35,18 @@ export class AuthService {
             throw new UnauthorizedException("Неверный email или пароль");
         }
 
-        return this.tokens.generateTokens(user.id, user.roles as string[]);
+        const tokens = await this.tokens.generateTokens(user.id, user.roles);
+
+        const refreshTokenHash = await this.crypto.hash(tokens.refreshToken);
+
+        const refreshToken = await this.prisma.refreshToken.create({
+            data: {
+                tokenHash: refreshTokenHash,
+                userId: user.id,
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            },
+        });
+
+        return tokens;
     }
 }

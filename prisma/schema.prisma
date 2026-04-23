@@ -16,8 +16,21 @@ model User {
   lockedUntil    DateTime? @map("locked_until")
   failedAttempts Int       @default(0) @map("failed_attempts")
 
+  tokens RefreshToken[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash     String   @unique
+  userId    Int      @map("user_id")
+  expiresAt DateTime @map("expires_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
 }
