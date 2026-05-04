@@ -48,4 +48,10 @@ export class UsersService {
             where: { email } 
         });
     }
+
+    async findById(id: number) {
+        return this.prisma.user.findUnique({ 
+            where: { id } 
+        });
+    }
 }
